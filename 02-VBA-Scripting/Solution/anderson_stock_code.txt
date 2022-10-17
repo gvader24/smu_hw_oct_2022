@@ -1,0 +1,112 @@
+Sub stockTicker()
+    
+    ' initialize variables
+    Dim totalStockVolume As Double
+    Dim stock As String
+    Dim i As Long
+    Dim openPrice As Double
+    Dim closingPrice As Double
+    Dim yearChange As Double
+    Dim percentChange As Double
+    Dim lastRow As Double
+    Dim summaryRow As Integer
+    Dim ws As Worksheet
+    
+    ' bonus
+    Dim j As Integer
+    Dim volTicker As String
+    Dim maxTick As String
+    Dim minTick As String
+    Dim maxVol As Double
+    Dim maxPerc As Double
+    Dim minPerc As Double
+
+    ' enables formula to run for every worksheet in workbook
+    For Each ws In ThisWorkbook.Worksheets
+    
+        ' initialize volume and keep track of summary table row
+        totalStockVolume = 0
+        summaryRow = 2
+        
+        ' find last row that is not blank in column A, essentially length of data
+        lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        
+        openPrice = ws.Cells(2, 3).Value
+        
+        ' loop through sheet
+        For i = 2 To lastRow
+            
+            ' get stock in that row
+            stock = ws.Cells(i, 1).Value
+            
+            ' if different, end calculations and output to table
+            If (stock <> ws.Cells(i + 1, 1).Value) Then
+                
+                totalStockVolume = totalStockVolume + ws.Cells(i, 7).Value
+                
+                closingPrice = ws.Cells(i, 6).Value
+                yearChange = closingPrice - openPrice
+                percentChange = yearChange / openPrice
+                            
+                ws.Cells(summaryRow, 9).Value = stock
+                ws.Cells(summaryRow, 10).Value = yearChange
+                ws.Cells(summaryRow, 11).Value = percentChange
+                ws.Cells(summaryRow, 12).Value = totalStockVolume
+                
+                ' color formatting
+                If (yearChange > 0) Then
+                    ws.Cells(summaryRow, 10).Interior.ColorIndex = 4
+                Else
+                    ws.Cells(summaryRow, 10).Interior.ColorIndex = 3
+                End If
+                
+                ' reset the sum and increment summary table
+                totalStockVolume = 0
+                summaryRow = summaryRow + 1
+                
+                ' grab open price of next stock
+                openPrice = ws.Cells(i + 1, 3).Value
+                
+            Else
+            
+                ' increment the sum
+                totalStockVolume = totalStockVolume + ws.Cells(i, 7).Value
+                
+            End If
+        
+        Next i
+        
+        ' bonus
+        maxVol = 0
+        maxPerc = -999999999
+        minPerc = 999999999
+        
+        For j = 2 To summaryRow - 1
+        
+            If ws.Cells(j, 12).Value > maxVol Then
+                maxVol = ws.Cells(j, 12).Value
+                volTicker = ws.Cells(j, 9).Value
+            End If
+            
+            If ws.Cells(j, 11).Value > maxPerc Then
+                maxPerc = ws.Cells(j, 11).Value
+                maxTick = ws.Cells(j, 9).Value
+            End If
+            
+            If ws.Cells(j, 11).Value < minPerc Then
+                minPerc = ws.Cells(j, 11).Value
+                minTick = ws.Cells(j, 9).Value
+            End If
+            
+        Next j
+        
+        ws.Range("P2").Value = maxTick
+        ws.Range("Q2").Value = maxPerc
+        ws.Range("P3").Value = minTick
+        ws.Range("Q3").Value = minPerc
+        ws.Range("P4").Value = volTicker
+        ws.Range("Q4").Value = maxVol
+        
+    Next ws
+    
+End Sub
